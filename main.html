@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TWF - Taliara Welfare Fund Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c5f2d;
+            --secondary: #97bc62;
+            --accent: #2c5f9a;
+            --light: #f5f9f0;
+            --dark: #1a3c1d;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --radius: 12px;
+            --shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f9f0, #e6f2e6);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 25px 0;
+            position: relative;
+        }
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            color: var(--accent);
+            font-weight: 500;
+            font-size: 1.2rem;
+            margin-top: 5px;
+        }
+        
+        .welcome-container {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome-container::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+        
+        .welcome-message {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .welcome-text {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            opacity: 0.9;
+        }
+        
+        .hadith-box {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--secondary);
+            text-align: center;
+            position: relative;
+        }
+        
+        .hadith-title {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .hadith-text {
+            font-family: 'Noto Sans Arabic', sans-serif;
+            font-size: 1.6rem;
+            color: var(--dark);
+            line-height: 1.8;
+            margin: 20px 0;
+        }
+        
+        .hadith-translation {
+            font-style: italic;
+            color: #555;
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .metrics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+        
+        .metric-card.target::after { background: var(--accent); }
+        .metric-card.achieved::after { background: var(--success); }
+        .metric-card.remaining::after { background: var(--warning); }
+        .metric-card.countdown::after { background: var(--danger); }
+        
+        .metric-title {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .metric-target .metric-value {
+            color: var(--accent);
+        }
+        
+        .metric-achieved .metric-value {
+            color: var(--success);
+        }
+        
+        .metric-remaining .metric-value {
+            color: var(--warning);
+        }
+        
+        .metric-countdown .metric-value {
+            color: var(--danger);
+            font-size: 1.8rem;
+        }
+        
+        .progress-container {
+            height: 12px;
+            background-color: #eee;
+            border-radius: 6px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+        
+        .donors-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .donor-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .donor-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .donor-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .donor-details {
+            flex: 1;
+        }
+        
+        .donor-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .donor-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+            margin: 5px 0;
+        }
+        
+        .donor-date {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .donor-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .donor-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .donor-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .donor-list-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .list-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .donor-list-amount {
+            font-weight: 600;
+            color: var(--success);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .update-notice {
+            background-color: #fff8e1;
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            border-radius: 0 var(--radius) var(--radius) 0;
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .metrics-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .donors-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .hadith-text {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-hands-helping"></i>
+                </div>
+                <h1>TWF - Taliara Welfare Fund</h1>
+            </div>
+            <div class="subtitle">Live Donation Dashboard</div>
+        </header>
+        
+        <div class="welcome-container">
+            <div class="welcome-message">Welcome to Taliara Welfare Fund</div>
+            <div class="welcome-text">Your generosity brings hope to those in need. Together, we're making a difference in our community, one donation at a time.</div>
+        </div>
+        
+        <div class="hadith-box">
+            <div class="hadith-title">
+                <i class="fas fa-book-quran"></i>
+                <span>Hadith of the Day</span>
+            </div>
+            <div class="hadith-text" id="hadithText"></div>
+            <div class="hadith-translation" id="hadithTranslation"></div>
+        </div>
+        
+        <div class="update-notice">
+            <i class="fas fa-sync-alt"></i>
+            <div>Data updates automatically every 5 minutes. Last updated: <span id="lastUpdate">Just now</span></div>
+        </div>
+        
+        <div class="metrics-container">
+            <div class="metric-card metric-target target">
+                <div class="metric-title">
+                    <i class="fas fa-bullseye"></i>
+                    Monthly Target
+                </div>
+                <div class="metric-value" id="targetAmount">PKR 0</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                </div>
+                <div class="metric-subtext">Help us reach our goal!</div>
+            </div>
+            
+            <div class="metric-card metric-achieved achieved">
+                <div class="metric-title">
+                    <i class="fas fa-hand-holding-heart"></i>
+                    Amount Achieved
+                </div>
+                <div class="metric-value" id="achievedAmount">PKR 0</div>
+                <div class="metric-subtext" id="donorsCountText">From 0 generous donors</div>
+            </div>
+            
+            <div class="metric-card metric-remaining remaining">
+                <div class="metric-title">
+                    <i class="fas fa-tasks"></i>
+                    Remaining Amount
+                </div>
+                <div class="metric-value" id="remainingAmount">PKR 0</div>
+                <div class="metric-subtext">Your support can make the difference</div>
+            </div>
+            
+            <div class="metric-card metric-countdown countdown">
+                <div class="metric-title">
+                    <i class="fas fa-clock"></i>
+                    Countdown Remaining
+                </div>
+                <div class="metric-value" id="countdownTimer">0d 00h 00m</div>
+                <div class="metric-subtext">Until the end of campaign</div>
+            </div>
+        </div>
+        
+        <div class="donors-container">
+            <div class="donor-card">
+                <div class="card-title">
+                    <i class="fas fa-crown"></i>
+                    Top Donor of the Month
+                </div>
+                <div class="donor-info">
+                    <div class="donor-avatar" id="topDonorInitials">--</div>
+                    <div class="donor-details">
+                        <div class="donor-name" id="topDonorName">No donations yet</div>
+                        <div class="donor-amount" id="topDonorAmount">PKR 0</div>
+                        <div class="donor-date" id="topDonorDate">Be the first donor!</div>
+                    </div>
+                </div>
+                <div class="donor-quote">
+                    "Giving is not just about making a donation, it's about making a difference."
+                </div>
+            </div>
+            
+            <div class="donor-card">
+                <div class="card-title">
+                    <i class="fas fa-history"></i>
+                    Most Recent Donation
+                </div>
+                <div class="donor-info">
+                    <div class="donor-avatar" id="lastDonorInitials">--</div>
+                    <div class="donor-details">
+                        <div class="donor-name" id="lastDonorName">No recent donations</div>
+                        <div class="donor-amount" id="lastDonorAmount">PKR 0</div>
+                        <div class="donor-date" id="lastDonorDate">Waiting for your support</div>
+                    </div>
+                </div>
+                <div class="donor-quote">
+                    "We make a living by what we get, but we make a life by what we give."
+                </div>
+            </div>
+        </div>
+        
+        <div class="donor-card">
+            <div class="card-title">
+                <i class="fas fa-list-ol"></i>
+                Top Donors This Month
+            </div>
+            <ul class="donor-list" id="donorList">
+                <li>No donations yet this month</li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>TWF - Taliara Welfare Fund &copy; <span id="currentYear"></span> | Together We Make a Difference</p>
+            <p>Data powered by Google Sheets & Google Apps Script</p>
+        </footer>
+    </div>
+
+    <script>
+        // Hadith database
+        const hadiths = [
+            {
+                text: "مَنْ نَفَّسَ عَنْ مُؤْمِنٍ كُرْبَةً مِنْ كُرَبِ الدُّنْيَا نَفَّسَ اللَّهُ عَنْهُ كُرْبَةً مِنْ كُرَبِ يَوْمِ الْقِيَامَةِ",
+                translation: '"Whoever relieves a believer\'s distress of the distressful aspects of this world, Allah will rescue him from a difficulty of the difficulties of the Hereafter." (Sahih Muslim)'
+            },
+            {
+                text: "الصَّدَقَةُ تُطْفِئُ الخَطِيئَةَ كَمَا يُطْفِئُ المَاءُ النَّارَ",
+                translation: '"Charity extinguishes sin as water extinguishes fire." (Tirmidhi)'
+            },
+            {
+                text: "مَثَلُ الْمُؤْمِنِينَ فِي تَوَادِّهِمْ وَتَرَاحُمِهِمْ وَتَعَاطُفِهِمْ مَثَلُ الْجَسَدِ إِذَا اشْتَكَى مِنْهُ عُضْوٌ تَدَاعَى لَهُ سَائِرُ الْجَسَدِ بِالسَّهَرِ وَالْحُمَّى",
+                translation: '"The parable of the believers in their affection, mercy, and compassion for each other is that of a body. When any limb aches, the whole body reacts with sleeplessness and fever." (Sahih Bukhari)'
+            },
+            {
+                text: "خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ",
+                translation: '"The best of people are those that bring most benefit to the rest of mankind." (Daraqutni, Hasan)'
+            },
+            {
+                text: "السَّاعِي عَلَى الأَرْمَلَةِ وَالمِسْكِينِ كَالْمُجَاهِدِ فِي سَبِيلِ اللَّهِ",
+                translation: '"The one who looks after a widow or a poor person is like a warrior who fights for Allah\'s cause." (Sahih Bukhari)'
+            }
+        ];
+        
+        // Current campaign data (will be populated from Google Sheets)
+        const campaignData = {
+            target: 0,
+            achieved: 0,
+            donorsCount: 0,
+            topDonor: null,
+            lastDonor: null,
+            topDonors: []
+        };
+        
+        // Format currency in PKR
+        function formatCurrency(amount) {
+            return 'PKR ' + Number(amount).toLocaleString('en-PK');
+        }
+        
+        // Get initials from name
+        function getInitials(name) {
+            if (!name) return '--';
+            return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0,2);
+        }
+        
+        // Format date nicely
+        function formatDate(dateString) {
+            if (!dateString) return 'No date available';
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+        
+        // Calculate remaining time until end of month
+        function calculateCountdown() {
+            const now = new Date();
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            endOfMonth.setHours(23, 59, 59, 999);
+            
+            const diff = endOfMonth - now;
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            return `${days}d ${hours}h ${minutes}m`;
+        }
+        
+        // Fetch data from Google Sheets via Apps Script
+        async function fetchData() {
+            try {
+                const response = await fetch('https://script.google.com/macros/s/AKfycbzkebseIej6UIbXABupDVzQswNyA3LLE8d-Qr-gWd99zx5o6G4eNJlv2lvJxxAzqqVb_A/exec');
+                const data = await response.json();
+                
+                // Update campaignData with real data
+                campaignData.target = data.target || 0;
+                campaignData.achieved = data.achieved || 0;
+                campaignData.remaining = data.remaining || 0;
+                campaignData.donorsCount = data.donorsCount || 0;
+                campaignData.topDonor = data.topDonor || null;
+                campaignData.lastDonor = data.lastDonor || null;
+                campaignData.topDonors = data.topDonors || [];
+                
+                updateMetrics();
+                updateDonorLists();
+                updateLastUpdateTime();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+        
+        // Update all metrics on the page
+        function updateMetrics() {
+            document.getElementById('targetAmount').textContent = formatCurrency(campaignData.target);
+            document.getElementById('achievedAmount').textContent = formatCurrency(campaignData.achieved);
+            document.getElementById('remainingAmount').textContent = formatCurrency(campaignData.target - campaignData.achieved);
+            document.getElementById('donorsCountText').textContent = `From ${campaignData.donorsCount} generous donor${campaignData.donorsCount !== 1 ? 's' : ''}`;
+            
+            const progress = campaignData.target > 0 ? (campaignData.achieved / campaignData.target) * 100 : 0;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+        
+        // Update donor information
+        function updateDonorLists() {
+            // Update top donor
+            if (campaignData.topDonor) {
+                document.getElementById('topDonorInitials').textContent = getInitials(campaignData.topDonor.name);
+                document.getElementById('topDonorName').textContent = campaignData.topDonor.name;
+                document.getElementById('topDonorAmount').textContent = formatCurrency(campaignData.topDonor.amount);
+                document.getElementById('topDonorDate').textContent = `Donated on: ${formatDate(campaignData.topDonor.date)}`;
+            }
+            
+            // Update last donor
+            if (campaignData.lastDonor) {
+                document.getElementById('lastDonorInitials').textContent = getInitials(campaignData.lastDonor.name);
+                document.getElementById('lastDonorName').textContent = campaignData.lastDonor.name;
+                document.getElementById('lastDonorAmount').textContent = formatCurrency(campaignData.lastDonor.amount);
+                document.getElementById('lastDonorDate').textContent = `Donated on: ${formatDate(campaignData.lastDonor.date)}`;
+            }
+            
+            // Update top donors list
+            const donorList = document.getElementById('donorList');
+            donorList.innerHTML = '';
+            
+            if (campaignData.topDonors.length > 0) {
+                campaignData.topDonors.forEach(donor => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="donor-list-name">
+                            <div class="list-avatar">${getInitials(donor.name)}</div>
+                            <div>${donor.name}</div>
+                        </div>
+                        <div class="donor-list-amount">${formatCurrency(donor.amount)}</div>
+                    `;
+                    donorList.appendChild(li);
+                });
+            } else {
+                donorList.innerHTML = '<li>No donations yet this month</li>';
+            }
+        }
+        
+        // Display random hadith
+        function displayRandomHadith() {
+            const randomIndex = Math.floor(Math.random() * hadiths.length);
+            const hadith = hadiths[randomIndex];
+            
+            document.getElementById('hadithText').textContent = hadith.text;
+            document.getElementById('hadithTranslation').textContent = hadith.translation;
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastUpdate').textContent = `Today at ${timeString}`;
+        }
+        
+        // Update countdown timer
+        function updateCountdown() {
+            document.getElementById('countdownTimer').textContent = calculateCountdown();
+        }
+        
+        // Initialize dashboard
+        function initDashboard() {
+            // Set current year in footer
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            // Initial setup
+            displayRandomHadith();
+            updateCountdown();
+            updateLastUpdateTime();
+            
+            // Initial data fetch
+            fetchData();
+            
+            // Update countdown every minute
+            setInterval(updateCountdown, 60000);
+            
+            // Update data every 5 minutes
+            setInterval(fetchData, 300000);
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
