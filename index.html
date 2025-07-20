@@ -389,8 +389,21 @@
             display: flex;
             gap: 10px;
         }
-        
-        @media (max-width: 768px) {
+.donor-avatar[title="--"] {
+  background: #eee;
+  color: #999;
+}
+
+.donation-time {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 3px;
+}
+
+.donor-card .donor-details {
+  min-width: 0; /* Prevents text overflow */
+}
+ @media (max-width: 768px) {
             .metrics-container {
                 grid-template-columns: 1fr;
             }
@@ -583,10 +596,23 @@
         
         // Format date nicely
         function formatDate(dateString) {
-            if (!dateString) return 'No date available';
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(dateString).toLocaleDateString('en-US', options);
-        }
+  if (!dateString) return "Date not available";
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid date";
+    
+    // Pakistani format without time
+    return date.toLocaleDateString('en-PK', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (e) {
+    console.error("Date formatting error:", e);
+    return dateString; // Fallback to raw string
+  }
+}
         
         // Calculate remaining time until end of month
         function calculateCountdown() {
@@ -604,78 +630,169 @@
         }
         
         // Fetch data from Google Sheets via Apps Script
-        async function fetchData() {
-            try {
-                const response = await fetch('https://script.google.com/macros/s/AKfycbzkebseIej6UIbXABupDVzQswNyA3LLE8d-Qr-gWd99zx5o6G4eNJlv2lvJxxAzqqVb_A/exec');
-                const data = await response.json();
-                
-                // Update campaignData with real data
-                campaignData.target = data.target || 0;
-                campaignData.achieved = data.achieved || 0;
-                campaignData.remaining = data.remaining || 0;
-                campaignData.donorsCount = data.donorsCount || 0;
-                campaignData.topDonor = data.topDonor || null;
-                campaignData.lastDonor = data.lastDonor || null;
-                campaignData.topDonors = data.topDonors || [];
-                
-                updateMetrics();
-                updateDonorLists();
-                updateLastUpdateTime();
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
+async function fetchData() {
+    try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbwDRI-Rg2X1xqvmdzCfqNXsSgd0WYujYQJ_9k34D64LjZI7sKyPnhVUm73TEHK8rtvLzQ/exec');
+        const data = await response.json();
+
+        // Update campaign data
+        campaignData.target = data.target || 0;
+        campaignData.achieved = data.achieved || 0;
+        campaignData.remaining = data.remaining || 0;
+        campaignData.donorsCount = data.donorsCount || 0;
+        campaignData.topDonor = data.topDonor || null;
+        campaignData.lastDonor = data.lastDonor || null;
+        campaignData.topDonors = data.topDonors || [];
+
+        // 🧠 Enhance and localize donor info
+        const enhanceDonor = (donor) => {
+            if (!donor || !donor.date || !donor.time) return donor;
+
+            const parsedDate = parseDonorDate(donor.date, donor.time);
+            donor.dateStr = formatHumanReadableDate(parsedDate);
+            donor.timeStr = parsedDate.toLocaleTimeString('ur-PK', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+            return donor;
+        };
+
+        if (campaignData.lastDonor) {
+            campaignData.lastDonor = enhanceDonor(campaignData.lastDonor);
         }
-        
-        // Update all metrics on the page
-        function updateMetrics() {
-            document.getElementById('targetAmount').textContent = formatCurrency(campaignData.target);
-            document.getElementById('achievedAmount').textContent = formatCurrency(campaignData.achieved);
-            document.getElementById('remainingAmount').textContent = formatCurrency(campaignData.target - campaignData.achieved);
-            document.getElementById('donorsCountText').textContent = `From ${campaignData.donorsCount} generous donor${campaignData.donorsCount !== 1 ? 's' : ''}`;
-            
-            const progress = campaignData.target > 0 ? (campaignData.achieved / campaignData.target) * 100 : 0;
-            document.getElementById('progressBar').style.width = `${progress}%`;
+
+        campaignData.topDonors = campaignData.topDonors.map(enhanceDonor);
+        if (campaignData.topDonor) {
+            campaignData.topDonor = enhanceDonor(campaignData.topDonor);
         }
-        
-        // Update donor information
-        function updateDonorLists() {
-            // Update top donor
-            if (campaignData.topDonor) {
-                document.getElementById('topDonorInitials').textContent = getInitials(campaignData.topDonor.name);
-                document.getElementById('topDonorName').textContent = campaignData.topDonor.name;
-                document.getElementById('topDonorAmount').textContent = formatCurrency(campaignData.topDonor.amount);
-                document.getElementById('topDonorDate').textContent = `Donated on: ${formatDate(campaignData.topDonor.date)}`;
-            }
-            
-            // Update last donor
-            if (campaignData.lastDonor) {
-                document.getElementById('lastDonorInitials').textContent = getInitials(campaignData.lastDonor.name);
-                document.getElementById('lastDonorName').textContent = campaignData.lastDonor.name;
-                document.getElementById('lastDonorAmount').textContent = formatCurrency(campaignData.lastDonor.amount);
-                document.getElementById('lastDonorDate').textContent = `Donated on: ${formatDate(campaignData.lastDonor.date)}`;
-            }
-            
-            // Update top donors list
-            const donorList = document.getElementById('donorList');
-            donorList.innerHTML = '';
-            
-            if (campaignData.topDonors.length > 0) {
-                campaignData.topDonors.forEach(donor => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `
-                        <div class="donor-list-name">
-                            <div class="list-avatar">${getInitials(donor.name)}</div>
-                            <div>${donor.name}</div>
-                        </div>
-                        <div class="donor-list-amount">${formatCurrency(donor.amount)}</div>
-                    `;
-                    donorList.appendChild(li);
-                });
-            } else {
-                donorList.innerHTML = '<li>No donations yet this month</li>';
-            }
-        }
-        
+
+        updateMetrics();
+        updateDonorLists();
+        updateLastUpdateTime();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        document.getElementById('lastUpdate').textContent = "ڈیٹا لوڈ کرنے میں مسئلہ ہے۔ دوبارہ کوشش کریں۔";
+    }
+}
+function parseDonorDate(dateStr, timeStr) {
+    // Combine date + time string into one Date object
+    const [day, month, year] = dateStr.split(' ');
+    const dateFormatted = `${day} ${month} ${year} ${timeStr}`;
+    return new Date(dateFormatted);
+}
+
+function formatHumanReadableDate(dateObj) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const target = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+
+    const diffInMs = today - target;
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+    if (diffInDays === 0) {
+        return "آج";
+    } else if (diffInDays === 1) {
+        return "کل";
+    } else if (diffInDays === 2) {
+        return "پرسوں";
+    } else if (diffInDays < 7) {
+        return `${Math.floor(diffInDays)} دن پہلے`;
+    } else {
+        // Return formatted date if older than a week
+        return dateObj.toLocaleDateString('ur-PK', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    }
+}
+
+// Update all metrics on the page
+function updateMetrics() {
+    document.getElementById('targetAmount').textContent = formatCurrency(campaignData.target);
+    document.getElementById('achievedAmount').textContent = formatCurrency(campaignData.achieved);
+    document.getElementById('remainingAmount').textContent = formatCurrency(campaignData.target - campaignData.achieved);
+    document.getElementById('donorsCountText').textContent = `From ${campaignData.donorsCount} generous donor${campaignData.donorsCount !== 1 ? 's' : ''}`;
+    
+    const progress = campaignData.target > 0 ? (campaignData.achieved / campaignData.target) * 100 : 0;
+    document.getElementById('progressBar').style.width = `${progress}%`;
+}
+
+function updateDonorLists() {
+  // Update top donor
+  const topDonorElement = document.querySelector('.donor-card:first-child .donor-info');
+  if (campaignData.topDonor) {
+    topDonorElement.innerHTML = `
+      <div class="donor-avatar">${getInitials(campaignData.topDonor.name)}</div>
+      <div class="donor-details">
+        <div class="donor-name">${campaignData.topDonor.name}</div>
+        <div class="donor-amount">${formatCurrency(campaignData.topDonor.amount)}</div>
+        <div class="donor-date">Donated on: ${campaignData.topDonor.dateStr}${
+          campaignData.topDonor.timeStr ? ` • ${campaignData.topDonor.timeStr}` : ''
+        }</div>
+      </div>
+    `;
+  } else {
+    topDonorElement.innerHTML = `
+      <div class="donor-avatar">--</div>
+      <div class="donor-details">
+        <div class="donor-name">No donations yet</div>
+        <div class="donor-amount">${formatCurrency(0)}</div>
+        <div class="donor-date">Be the first donor!</div>
+      </div>
+    `;
+  }
+
+  // Update last donor
+  const lastDonorElement = document.querySelector('.donor-card:last-child .donor-info');
+  if (campaignData.lastDonor) {
+    lastDonorElement.innerHTML = `
+      <div class="donor-avatar">${getInitials(campaignData.lastDonor.name)}</div>
+      <div class="donor-details">
+        <div class="donor-name">${campaignData.lastDonor.name}</div>
+        <div class="donor-amount">${formatCurrency(campaignData.lastDonor.amount)}</div>
+        <div class="donor-date">Donated on: ${campaignData.lastDonor.dateStr}${
+          campaignData.lastDonor.timeStr ? ` • ${campaignData.lastDonor.timeStr}` : ''
+        }</div>
+      </div>
+    `;
+  } else {
+    lastDonorElement.innerHTML = `
+      <div class="donor-avatar">--</div>
+      <div class="donor-details">
+        <div class="donor-name">No recent donations</div>
+        <div class="donor-amount">${formatCurrency(0)}</div>
+        <div class="donor-date">Waiting for your support</div>
+      </div>
+    `;
+  }
+
+  // Update top donors list
+  const donorList = document.getElementById('donorList');
+  donorList.innerHTML = '';
+  
+  if (campaignData.topDonors.length > 0) {
+    campaignData.topDonors.forEach(donor => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div class="donor-list-name">
+          <div class="list-avatar">${getInitials(donor.name)}</div>
+          <div>
+            <div>${donor.name}</div>
+            <div class="donation-time">${donor.dateStr}${
+              donor.timeStr ? ` • ${donor.timeStr}` : ''
+            }</div>
+          </div>
+        </div>
+        <div class="donor-list-amount">${formatCurrency(donor.amount)}</div>
+      `;
+      donorList.appendChild(li);
+    });
+  } else {
+    donorList.innerHTML = '<li>No donations yet this month</li>';
+  }
+}
         // Display random hadith
         function displayRandomHadith() {
             const randomIndex = Math.floor(Math.random() * hadiths.length);
